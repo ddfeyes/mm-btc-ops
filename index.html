@@ -1,0 +1,848 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Summer MM Ops Rate — BTC-Indexed Pricing | Lock Before It Reprices</title>
+  <meta name="description" content="Institutional-grade market-making operations on your exchange-side capital. Default rate $3,500 per exchange. This summer, indexed to BTC — lower band, lower locked rate." />
+  <meta property="og:title" content="Summer MM Ops Rate — BTC-Indexed Pricing" />
+  <meta property="og:description" content="Default $3,500/exchange. This summer the rate is BTC-indexed. Lock the current band for your prepaid term before BTC reprices it." />
+  <meta property="og:type" content="website" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #06070a;
+      --bg-soft: #0a0c12;
+      --panel: #0f1219;
+      --panel-2: #141826;
+      --glass: rgba(255,255,255,.045);
+      --glass-line: rgba(255,255,255,.10);
+      --text: #f5f7fb;
+      --muted: #98a1b3;
+      --muted-2: #c8cedb;
+      --line: #232a39;
+      --gold: #f5c84b;
+      --gold-deep: #d9a82a;
+      --ice: #7cc4ff;
+      --pos: #5fe3a1;
+      --danger: #ff6b6b;
+      --radius: 20px;
+      --radius-lg: 28px;
+      --shadow: 0 24px 70px rgba(0,0,0,.45);
+      --shadow-gold: 0 18px 50px rgba(245,200,75,.16);
+      --maxw: 1200px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(900px 520px at 12% -8%, rgba(245,200,75,.16), transparent 60%),
+        radial-gradient(820px 520px at 100% 0%, rgba(124,196,255,.10), transparent 58%),
+        radial-gradient(700px 700px at 50% 120%, rgba(95,227,161,.06), transparent 60%),
+        var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+    .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 22px; }
+    a { color: inherit; }
+    .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+    /* ---------- NAV ---------- */
+    .nav {
+      position: sticky; top: 0; z-index: 50;
+      backdrop-filter: blur(14px);
+      background: linear-gradient(180deg, rgba(6,7,10,.86), rgba(6,7,10,.55));
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 22px; max-width: var(--maxw); margin: 0 auto; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 900; letter-spacing: -.04em; font-size: 17px; }
+    .brand .dot { width: 10px; height: 10px; border-radius: 3px; background: linear-gradient(135deg, var(--gold), var(--gold-deep)); box-shadow: 0 0 16px rgba(245,200,75,.6); }
+    .nav-right { display: flex; align-items: center; gap: 14px; }
+    .ticker {
+      display: inline-flex; align-items: center; gap: 9px;
+      border: 1px solid var(--glass-line);
+      background: var(--glass);
+      padding: 7px 12px; border-radius: 999px; font-size: 13px; font-weight: 600;
+      color: var(--muted-2);
+    }
+    .ticker .stat { width: 8px; height: 8px; border-radius: 50%; background: var(--pos); box-shadow: 0 0 10px var(--pos); }
+    .ticker.is-manual .stat { background: var(--gold); box-shadow: 0 0 10px var(--gold); }
+    .ticker.is-down .stat { background: var(--danger); box-shadow: 0 0 10px var(--danger); }
+    .ticker b { color: var(--text); font-weight: 800; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      border: 0; cursor: pointer; text-decoration: none;
+      background: linear-gradient(135deg, var(--gold), var(--gold-deep));
+      color: #1a1303; font-weight: 800; font-size: 14px;
+      padding: 11px 18px; border-radius: 12px;
+      box-shadow: var(--shadow-gold);
+      transition: transform .15s ease, filter .15s ease;
+    }
+    .btn:hover { transform: translateY(-1px); filter: brightness(1.06); }
+    .btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--glass-line); box-shadow: none; }
+    .btn.ghost:hover { background: var(--glass); }
+    .btn.lg { padding: 15px 26px; font-size: 16px; border-radius: 14px; }
+    .nav .ticker.compact { display: inline-flex; }
+
+    /* ---------- LAYOUT ---------- */
+    section { scroll-margin-top: 80px; }
+    .pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      border: 1px solid rgba(245,200,75,.35); color: var(--gold);
+      padding: 7px 13px; border-radius: 999px;
+      background: rgba(245,200,75,.08);
+      font-size: 12.5px; font-weight: 800; letter-spacing: .02em; text-transform: uppercase;
+    }
+    .eyebrow { color: var(--gold); font-weight: 800; letter-spacing: .14em; text-transform: uppercase; font-size: 12.5px; }
+    h1, h2, h3 { letter-spacing: -.045em; }
+
+    /* ---------- HERO ---------- */
+    .hero { padding: 64px 0 26px; }
+    .hero-grid { display: grid; grid-template-columns: 1.04fr .96fr; gap: 34px; align-items: start; }
+    h1 { margin: 18px 0 0; font-size: clamp(40px, 6vw, 74px); line-height: .96; letter-spacing: -.06em; }
+    h1 .grad { background: linear-gradient(120deg, var(--gold), #ffe79a 55%, var(--gold-deep)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .lead { margin: 22px 0 0; color: var(--muted-2); font-size: 19px; max-width: 600px; }
+    .lead b { color: var(--text); }
+    .cta-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+    .trust { margin-top: 24px; display: flex; flex-wrap: wrap; gap: 10px 18px; color: var(--muted); font-size: 13.5px; }
+    .trust span { display: inline-flex; align-items: center; gap: 7px; }
+    .trust span::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--pos); opacity: .8; }
+
+    /* ---------- SPOTLIGHT (anchor price card in hero) ---------- */
+    .spotlight {
+      position: relative;
+      background: linear-gradient(180deg, rgba(245,200,75,.10), rgba(255,255,255,.02));
+      border: 1px solid rgba(245,200,75,.30);
+      border-radius: var(--radius-lg);
+      padding: 26px; box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .spotlight::before { content:""; position:absolute; inset:-1px; border-radius: inherit; padding:1px; background: linear-gradient(140deg, rgba(245,200,75,.5), transparent 40%); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; pointer-events:none; }
+    .spotlight .label { color: var(--gold); font-weight: 800; letter-spacing: .12em; text-transform: uppercase; font-size: 12px; }
+    .spotlight .default { margin-top: 14px; color: var(--muted); font-size: 15px; }
+    .spotlight .default s { color: var(--muted); text-decoration-thickness: 2px; }
+    .spotlight .default b { color: var(--text); }
+    .spotlight .now { display: flex; align-items: baseline; gap: 12px; margin-top: 6px; flex-wrap: wrap; }
+    .spotlight .now .amount { font-size: clamp(46px, 7vw, 64px); font-weight: 900; letter-spacing: -.06em; color: var(--text); line-height: 1; }
+    .spotlight .now .unit { color: var(--muted-2); font-size: 15px; font-weight: 600; }
+    .save-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(95,227,161,.12); border: 1px solid rgba(95,227,161,.4); color: var(--pos);
+      font-weight: 800; font-size: 14px; padding: 8px 13px; border-radius: 999px; margin-top: 16px;
+    }
+    .spotlight .urg { margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,.10); color: var(--muted-2); font-size: 14px; }
+    .spotlight .urg b { color: var(--gold); }
+
+    /* ---------- GENERIC CARD ---------- */
+    .card {
+      background: linear-gradient(180deg, var(--glass), rgba(255,255,255,.015));
+      border: 1px solid var(--glass-line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .section { padding: 50px 0; }
+    .section-head { max-width: 720px; margin-bottom: 30px; }
+    .section-head h2 { margin: 12px 0 0; font-size: clamp(30px, 4.4vw, 44px); }
+    .section-head p { margin: 14px 0 0; color: var(--muted-2); font-size: 17px; }
+
+    /* ---------- HOW MECHANIC (3 steps) ---------- */
+    .mechanic { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .mech { padding: 24px; }
+    .mech .n { font-family:'JetBrains Mono', monospace; color: var(--gold); font-weight: 700; font-size: 13px; letter-spacing:.1em; }
+    .mech h3 { margin: 12px 0 0; font-size: 20px; }
+    .mech p { margin: 9px 0 0; color: var(--muted); font-size: 14.5px; }
+
+    /* ---------- CALCULATOR ---------- */
+    .calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; align-items: start; }
+    .calc { padding: 26px; }
+    .calc h3 { margin: 0; font-size: 22px; }
+    .calc .sub { color: var(--muted); font-size: 14px; margin: 6px 0 20px; }
+    .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    label { display: block; color: var(--muted); font-size: 11.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .09em; margin-bottom: 8px; }
+    input, select {
+      width: 100%; border: 1px solid var(--line);
+      background: rgba(6,7,10,.66); color: var(--text);
+      padding: 13px 14px; border-radius: 13px; font-size: 15px; font-weight: 600; outline: none;
+      transition: border-color .15s ease, box-shadow .15s ease;
+      font-family: inherit;
+    }
+    input:focus, select:focus { border-color: rgba(245,200,75,.7); box-shadow: 0 0 0 3px rgba(245,200,75,.12); }
+    .btc-field { position: relative; }
+    .btc-state { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 8px; font-size: 12px; color: var(--muted); }
+    .btc-state a { color: var(--gold); cursor: pointer; font-weight: 700; text-decoration: none; }
+    .btc-state a:hover { text-decoration: underline; }
+    .seg { display: inline-flex; gap: 6px; }
+    .seg button { all: unset; cursor: pointer; padding: 4px 9px; border-radius: 8px; font-size: 12px; font-weight: 700; color: var(--muted); border: 1px solid transparent; }
+    .seg button.active { color: var(--gold); border-color: rgba(245,200,75,.35); background: rgba(245,200,75,.08); }
+
+    .result { margin-top: 22px; border-radius: 18px; background: rgba(255,255,255,.03); border: 1px solid var(--glass-line); padding: 6px 18px 14px; }
+    .rrow { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 0; border-bottom: 1px solid rgba(255,255,255,.07); }
+    .rrow:last-child { border-bottom: 0; }
+    .rrow .k { color: var(--muted); font-size: 14px; }
+    .rrow .v { font-weight: 800; text-align: right; font-variant-numeric: tabular-nums; }
+    .rrow .v s { color: var(--muted); font-weight: 600; margin-right: 8px; }
+    .rrow.hot .v { color: var(--gold); }
+    .rrow.save .v { color: var(--pos); }
+    .rrow.total { padding-top: 14px; }
+    .rrow.total .k { color: var(--text); font-weight: 700; font-size: 15px; }
+    .rrow.total .v { font-size: 26px; color: var(--gold); }
+    .calc .note { color: var(--muted); font-size: 12.5px; margin-top: 14px; }
+    .copy-wrap { display: flex; gap: 10px; margin-top: 16px; }
+    .copy-wrap .btn { flex: 1; }
+
+    .why { padding: 26px; }
+    .why h3 { margin: 0 0 6px; font-size: 22px; }
+    .why ul { list-style: none; margin: 16px 0 0; padding: 0; }
+    .why li { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,.06); }
+    .why li:last-child { border-bottom: 0; }
+    .why li .ic { flex: none; width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; background: rgba(245,200,75,.12); color: var(--gold); font-weight: 900; font-size: 14px; }
+    .why li b { display: block; font-size: 15px; }
+    .why li span { color: var(--muted); font-size: 13.5px; }
+
+    /* ---------- PLANS ---------- */
+    .plans { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; align-items: stretch; }
+    .tier { padding: 26px; display: flex; flex-direction: column; position: relative; }
+    .tier h3 { margin: 0; font-size: 23px; }
+    .tier .tag { color: var(--muted); font-size: 13.5px; min-height: 40px; margin-top: 8px; }
+    .tier .priceblock { margin: 14px 0 4px; }
+    .tier .priceblock .def { color: var(--muted); font-size: 13px; }
+    .tier .priceblock .def s { text-decoration-thickness: 2px; }
+    .tier .priceblock .amt { font-size: 40px; font-weight: 900; letter-spacing: -.06em; }
+    .tier .priceblock .per { color: var(--muted); font-size: 13px; }
+    .tier ul { list-style: none; margin: 18px 0 22px; padding: 0; }
+    .tier li { display: flex; gap: 10px; padding: 8px 0; color: var(--muted-2); font-size: 14px; }
+    .tier li::before { content: "✓"; color: var(--pos); font-weight: 900; }
+    .tier li.off { color: var(--muted); opacity: .6; }
+    .tier li.off::before { content: "—"; color: var(--muted); }
+    .tier .btn { margin-top: auto; }
+    .tier.featured { border-color: rgba(245,200,75,.42); background: linear-gradient(180deg, rgba(245,200,75,.10), rgba(255,255,255,.02)); box-shadow: var(--shadow-gold); }
+    .ribbon { position: absolute; top: 18px; right: 18px; background: linear-gradient(135deg, var(--gold), var(--gold-deep)); color:#1a1303; font-weight: 900; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; padding: 5px 10px; border-radius: 999px; }
+
+    /* ---------- TABLE ---------- */
+    .table-card { padding: 26px; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 540px; }
+    th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid rgba(255,255,255,.07); font-variant-numeric: tabular-nums; }
+    th { color: var(--muted); font-size: 11.5px; text-transform: uppercase; letter-spacing: .08em; }
+    td { color: var(--muted-2); font-size: 15px; }
+    td.band { color: var(--text); font-weight: 600; }
+    tr:last-child td { border-bottom: 0; }
+    tr.default-row td { color: var(--muted); }
+    tr.default-row td:first-child::after { content: " · default"; color: var(--gold); font-size: 12px; font-weight: 700; }
+    tr.is-current { background: rgba(245,200,75,.10); }
+    tr.is-current td { color: var(--text); }
+    tr.is-current td:first-child { box-shadow: inset 3px 0 0 var(--gold); position: relative; }
+    .live-chip { display:inline-block; margin-left:8px; font-size: 11px; font-weight:800; color: var(--gold); border:1px solid rgba(245,200,75,.4); border-radius: 999px; padding: 2px 8px; }
+    .note { color: var(--muted); font-size: 13px; margin-top: 14px; }
+
+    /* ---------- INCLUDED / SLA ---------- */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .two-col .card { padding: 26px; }
+    .two-col h3 { margin: 0 0 16px; font-size: 21px; }
+    .matrix td:first-child { color: var(--text); font-weight: 600; }
+    .yes { color: var(--pos); font-weight: 800; }
+    .no { color: var(--muted); }
+
+    /* ---------- STEPS ---------- */
+    .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .step { padding: 22px; }
+    .step .n { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; font-weight: 900; background: rgba(245,200,75,.12); color: var(--gold); font-family:'JetBrains Mono', monospace; }
+    .step h3 { margin: 14px 0 0; font-size: 17px; }
+    .step p { margin: 8px 0 0; color: var(--muted); font-size: 14px; }
+
+    /* ---------- FAQ ---------- */
+    .faq { max-width: 860px; margin: 0 auto; }
+    details { border: 1px solid var(--glass-line); border-radius: 16px; background: var(--glass); margin-bottom: 12px; padding: 4px 20px; }
+    details[open] { border-color: rgba(245,200,75,.30); }
+    summary { cursor: pointer; list-style: none; padding: 16px 0; font-weight: 700; font-size: 16px; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+    summary::-webkit-details-marker { display: none; }
+    summary::after { content: "+"; color: var(--gold); font-size: 22px; font-weight: 400; transition: transform .2s ease; }
+    details[open] summary::after { transform: rotate(45deg); }
+    details p { margin: 0 0 18px; color: var(--muted-2); font-size: 15px; }
+
+    /* ---------- FINAL CTA ---------- */
+    .final {
+      text-align: center; padding: 56px 26px;
+      background: linear-gradient(180deg, rgba(245,200,75,.12), rgba(255,255,255,.02));
+      border: 1px solid rgba(245,200,75,.3); border-radius: var(--radius-lg);
+    }
+    .final h2 { font-size: clamp(28px, 4vw, 42px); margin: 0; }
+    .final p { color: var(--muted-2); font-size: 17px; max-width: 560px; margin: 14px auto 26px; }
+
+    /* ---------- FOOTER ---------- */
+    footer { border-top: 1px solid rgba(255,255,255,.06); margin-top: 60px; padding: 32px 0 60px; }
+    .finewarn { border: 1px solid rgba(255,107,107,.22); background: rgba(255,107,107,.05); color: #ffd9d9; border-radius: 16px; padding: 18px; font-size: 13.5px; }
+    .footrow { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-top: 22px; color: var(--muted); font-size: 13px; }
+
+    /* ---------- RESPONSIVE ---------- */
+    @media (max-width: 980px) {
+      .hero-grid, .calc-grid, .two-col { grid-template-columns: 1fr; }
+      .mechanic, .plans { grid-template-columns: 1fr; }
+      .steps { grid-template-columns: 1fr 1fr; }
+      .nav .ticker.compact { display: none; }
+    }
+    @media (max-width: 560px) {
+      .field-grid { grid-template-columns: 1fr; }
+      .steps { grid-template-columns: 1fr; }
+      .cta-row { flex-direction: column; }
+      .cta-row .btn { width: 100%; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      * { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV -->
+  <header class="nav">
+    <div class="nav-inner">
+      <div class="brand"><span class="dot"></span> MM&nbsp;OPS</div>
+      <div class="nav-right">
+        <div class="ticker compact" id="ticker"><span class="stat"></span> BTC <b id="tickerPrice">—</b></div>
+        <a class="btn" href="#calculator">Calculate rate</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- HERO -->
+    <section class="hero">
+      <div class="wrap hero-grid">
+        <div>
+          <span class="pill">● Summer 2026 · BTC-indexed promo</span>
+          <h1>Lock your summer <span class="grad">market-making</span> rate before BTC reprices it.</h1>
+          <p class="lead">Institutional-grade MM operations, run on <b>your</b> exchange-side capital. Our default rate is <b>$3,500 per exchange</b>. This summer it's indexed to BTC — the lower the band, the lower the rate you lock for your entire prepaid term.</p>
+          <div class="cta-row">
+            <a class="btn lg" href="#calculator">Calculate your summer rate</a>
+            <a class="btn ghost lg" href="#plans">See what's included</a>
+          </div>
+          <div class="trust">
+            <span>You keep custody</span>
+            <span>No capital pooled</span>
+            <span>No price or volume promises</span>
+            <span>Rate fixed for your term</span>
+          </div>
+        </div>
+
+        <!-- SPOTLIGHT -->
+        <aside class="spotlight" id="spotlight">
+          <div class="label">Full-service · per exchange / month</div>
+          <div class="default">Default rate <s id="spotDefault">$3,500</s> &nbsp;·&nbsp; <b>summer, indexed to BTC</b></div>
+          <div class="now"><span class="amount" id="spotNow">—</span><span class="unit">/ exchange · mo</span></div>
+          <div class="save-badge" id="spotSave">Calculating live BTC…</div>
+          <div class="urg" id="spotUrg">Fetching live BTC price…</div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- MECHANIC -->
+    <section class="section">
+      <div class="wrap">
+        <div class="mechanic">
+          <div class="card mech">
+            <div class="n">01 / DEFAULT</div>
+            <h3>$3,500 is our standard</h3>
+            <p>Full-service market-making operations are priced at $3,500 per exchange, per month. That is the rate outside the promo window.</p>
+          </div>
+          <div class="card mech">
+            <div class="n">02 / INDEXED</div>
+            <h3>Summer = BTC-indexed</h3>
+            <p>While BTC trades in a lower band, the monthly rate sits below default. As BTC climbs through each band, the rate steps back up toward standard.</p>
+          </div>
+          <div class="card mech">
+            <div class="n">03 / LOCKED</div>
+            <h3>You lock the band</h3>
+            <p>Prepay your term at today's band and the invoice price is fixed — even if BTC reprices the live rate the next day.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CALCULATOR -->
+    <section class="section" id="calculator">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Pricing calculator</span>
+          <h2>Build your offer in real time.</h2>
+          <p>Live BTC price selects your band automatically. Stack term and multi-exchange discounts to see your locked rate and total savings versus default.</p>
+        </div>
+        <div class="calc-grid">
+          <div class="card calc">
+            <h3>Your configuration</h3>
+            <div class="sub">Service fee only — client provides exchange-side inventory and capital.</div>
+            <div class="field-grid">
+              <div>
+                <label for="plan">Service level</label>
+                <select id="plan">
+                  <option value="basic">Basic</option>
+                  <option value="core" selected>Core</option>
+                  <option value="full">Full</option>
+                </select>
+              </div>
+              <div class="btc-field">
+                <label for="btc">BTC price (USD)</label>
+                <input id="btc" type="number" min="0" step="100" inputmode="numeric" />
+                <div class="btc-state">
+                  <span id="btcSource">connecting…</span>
+                  <span class="seg">
+                    <button id="modeLive" class="active" type="button">Live</button>
+                    <button id="modeManual" type="button">Manual</button>
+                  </span>
+                </div>
+              </div>
+              <div>
+                <label for="exchanges">Exchanges</label>
+                <input id="exchanges" type="number" min="1" step="1" value="1" inputmode="numeric" />
+              </div>
+              <div>
+                <label for="months">Term · max 3 months</label>
+                <select id="months">
+                  <option value="1">1 month</option>
+                  <option value="2">2 months · −5%</option>
+                  <option value="3" selected>3 months · −15%</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="result" id="result"></div>
+
+            <div class="copy-wrap">
+              <button class="btn" id="copy" type="button">Copy offer summary</button>
+              <a class="btn ghost" href="#contact" id="lockBtn">Lock this rate</a>
+            </div>
+            <div class="note">Discounts: 2 mo −5% · 3 mo −15% · each additional exchange −5% · combined up to −40%. Invoice price is fixed for the prepaid term; switch BTC to “Manual” to model any scenario.</div>
+          </div>
+
+          <div class="card why">
+            <h3>Why teams run ops with us</h3>
+            <ul>
+              <li><span class="ic">◆</span><div><b>Custody stays with you</b><span>We operate the engine on your exchange accounts. We never pool, hold or move your capital.</span></div></li>
+              <li><span class="ic">◆</span><div><b>Deterministic, monitored engine</b><span>Configured strategy, 24/7 monitoring and alerting, automated reporting per your service level.</span></div></li>
+              <li><span class="ic">◆</span><div><b>Transparent, indexed pricing</b><span>One published rate, indexed to a public number — BTC. No opaque “custom quotes”, no hidden uplift.</span></div></li>
+              <li><span class="ic">◆</span><div><b>Honest scope</b><span>No price, volume or market-outcome promises. We sell operations and discipline — not fantasy.</span></div></li>
+              <li><span class="ic">◆</span><div><b>Fixed for your term</b><span>Lock the current band and your monthly fee can't drift upward mid-contract.</span></div></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PLANS -->
+    <section class="section" id="plans">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Service levels</span>
+          <h2>Three levels. Each with its own rate.</h2>
+          <p>Full is the complete operations layer at our standard $3,500. Core and Basic are reduced service levels for teams that need less coverage. Prices below reflect the current live BTC band.</p>
+        </div>
+        <div class="plans">
+          <div class="card tier" data-plan="basic">
+            <h3>Basic</h3>
+            <div class="tag">Autonomous MM, low-touch support. Lowest monthly fee.</div>
+            <div class="priceblock">
+              <div class="def"><s class="bDef">$1,500</s> default</div>
+              <div><span class="amt bNow">—</span></div>
+              <div class="per">/ exchange · month · current band</div>
+            </div>
+            <ul>
+              <li>Autonomous strategy setup</li>
+              <li>Client-provided inventory/capital</li>
+              <li>Standard monitoring</li>
+              <li class="off">Mini-app reporting</li>
+              <li class="off">Dashboard</li>
+              <li class="off">Priority communication</li>
+            </ul>
+            <a class="btn ghost" href="#calculator">Select Basic</a>
+          </div>
+
+          <div class="card tier featured" data-plan="core">
+            <div class="ribbon">Most popular</div>
+            <h3>Core</h3>
+            <div class="tag">Autonomous MM + mini-app + daily reporting. Right fit for most teams.</div>
+            <div class="priceblock">
+              <div class="def"><s class="bDef">$2,500</s> default</div>
+              <div><span class="amt bNow">—</span></div>
+              <div class="per">/ exchange · month · current band</div>
+            </div>
+            <ul>
+              <li>Everything in Basic</li>
+              <li>Mini-app with daily automated reporting</li>
+              <li>Business-hours communication</li>
+              <li>Periodic parameter adjustments</li>
+              <li class="off">Full dashboard</li>
+              <li class="off">15-min priority replies</li>
+            </ul>
+            <a class="btn" href="#calculator">Select Core</a>
+          </div>
+
+          <div class="card tier" data-plan="full">
+            <h3>Full</h3>
+            <div class="tag">Complete ops layer, dashboard, priority comms, proactive optimization.</div>
+            <div class="priceblock">
+              <div class="def"><s class="bDef">$3,500</s> default · standard</div>
+              <div><span class="amt bNow">—</span></div>
+              <div class="per">/ exchange · month · current band</div>
+            </div>
+            <ul>
+              <li>Everything in Core</li>
+              <li>Mini-app + full dashboard</li>
+              <li>Priority replies up to 15 min (working hours)</li>
+              <li>Proactive parameter &amp; risk work</li>
+              <li>Cost/risk optimization attempts</li>
+              <li>Highest-touch operations</li>
+            </ul>
+            <a class="btn ghost" href="#calculator">Select Full</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BANDS TABLE -->
+    <section class="section">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Pricing bands</span>
+          <h2>BTC-indexed rate card <span class="live-chip" id="bandChip">live</span></h2>
+          <p>Monthly service fee per exchange, by BTC band. Your current band is highlighted from the live price. The $100,000+ row is the standard (default) rate.</p>
+        </div>
+        <div class="card table-card">
+          <table>
+            <thead>
+              <tr><th>BTC band</th><th>Basic</th><th>Core</th><th>Full</th></tr>
+            </thead>
+            <tbody id="bandBody"><!-- filled by JS --></tbody>
+          </table>
+          <p class="note">Prices are monthly service fees per exchange. Exchange fees, client inventory, project/token capital and third-party costs are not included.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- INCLUDED / SLA -->
+    <section class="section">
+      <div class="wrap two-col">
+        <div class="card">
+          <h3>What's included</h3>
+          <table class="matrix">
+            <thead><tr><th>Capability</th><th>Basic</th><th>Core</th><th>Full</th></tr></thead>
+            <tbody>
+              <tr><td>Autonomous MM engine</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+              <tr><td>Strategy setup &amp; config</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+              <tr><td>24/7 monitoring &amp; alerting</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+              <tr><td>Mini-app daily reporting</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+              <tr><td>Parameter adjustments</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+              <tr><td>Full dashboard</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td></tr>
+              <tr><td>Proactive optimization</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h3>Service-level response</h3>
+          <table class="matrix">
+            <thead><tr><th>Level</th><th>Response</th><th>Reporting</th></tr></thead>
+            <tbody>
+              <tr><td>Basic</td><td>Up to 1 business day</td><td>On request</td></tr>
+              <tr><td>Core</td><td>Up to 4 business hours</td><td>Daily, automated</td></tr>
+              <tr><td>Full</td><td>Up to 15 min (working hrs)</td><td>Daily + dashboard</td></tr>
+            </tbody>
+          </table>
+          <p class="note">Response targets apply to standard working hours. Scope is limited to MM infrastructure, configuration, monitoring, communication and reporting per the selected level.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="section">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">How it works</span>
+          <h2>From rate to live ops in four steps.</h2>
+        </div>
+        <div class="steps">
+          <div class="card step"><div class="n">1</div><h3>Pick level &amp; exchanges</h3><p>Choose Basic, Core or Full and the number of exchanges you want covered.</p></div>
+          <div class="card step"><div class="n">2</div><h3>Lock the band</h3><p>Prepay your term at today's BTC band. The invoice price is fixed for the whole term.</p></div>
+          <div class="card step"><div class="n">3</div><h3>We deploy the engine</h3><p>The MM engine is configured and deployed onto your exchange-side inventory — you keep custody.</p></div>
+          <div class="card step"><div class="n">4</div><h3>Monitor &amp; report</h3><p>24/7 monitoring, alerting and reporting per your service level, for the life of the contract.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="section">
+      <div class="wrap">
+        <div class="section-head" style="margin-left:auto;margin-right:auto;text-align:center;">
+          <span class="eyebrow">FAQ</span>
+          <h2>Straight answers.</h2>
+        </div>
+        <div class="faq">
+          <details open><summary>Is this your capital or ours?</summary><p>Yours. We never pool, custody or move your funds. The MM engine runs on your own exchange accounts using your exchange-side inventory and capital. We provide the operations, not the money.</p></details>
+          <details><summary>Why is the price indexed to BTC?</summary><p>It keeps pricing transparent and tied to a public, verifiable number instead of an opaque “custom quote”. Our standard full-service rate is $3,500 per exchange. This summer, while BTC trades in a lower band, you can lock a lower rate for your entire term.</p></details>
+          <details><summary>What exactly does “lock the band” mean?</summary><p>When you prepay a term, your monthly fee is fixed at the band that BTC is in on the day you commit. If BTC climbs into a higher band the next week, your invoiced rate does not change for the duration of your contract.</p></details>
+          <details><summary>Do you promise trading volume or price action?</summary><p>No. We make no price, volume or market-outcome promises. You are paying for a professionally operated, monitored market-making engine and the operational discipline around it — nothing more, nothing less.</p></details>
+          <details><summary>What's the difference between the three levels?</summary><p>Full is the complete operations layer (dashboard, priority response, proactive optimization) at the standard $3,500. Core adds the mini-app, daily reporting and parameter work. Basic is the lean, autonomous, low-touch level for teams that need less coverage.</p></details>
+          <details><summary>Can I cover multiple exchanges?</summary><p>Yes. The rate is per exchange, per month. Set the number of exchanges in the calculator to see your blended monthly and contract totals.</p></details>
+          <details><summary>Are there volume or term discounts?</summary><p>Yes, and they stack. Prepay 2 months for −5% or 3 months for −15% (3 months is the maximum term). Each additional exchange beyond the first is another −5%. Both discounts apply on top of the summer band rate, up to a combined cap of −40%.</p></details>
+        </div>
+      </div>
+    </section>
+
+    <!-- FINAL CTA -->
+    <section class="section" id="contact">
+      <div class="wrap">
+        <div class="final">
+          <h2>Lock the summer band before BTC moves it.</h2>
+          <p>Configure your offer, copy the summary, and send it over. The rate you lock today is the rate you keep for your term.</p>
+          <a class="btn lg" href="#calculator">Build my offer</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="wrap">
+      <div class="finewarn">
+        No price-action promises. No volume promises. No exchange-outcome promises. No capital included or pooled. Service scope is limited to MM infrastructure, configuration, monitoring, communication and reporting according to the selected service level. The client provides all exchange-side inventory and capital and retains full custody at all times.
+      </div>
+      <div class="footrow">
+        <span>MM&nbsp;OPS · BTC-indexed summer pricing</span>
+        <span>Service fee only · Client capital not included</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // ---- Pricing model (per-exchange monthly service fee) ----
+    const TIERS = {
+      basic: { name: 'Basic', prices: [400, 600, 900, 1200, 1500] },
+      core:  { name: 'Core',  prices: [1000, 1200, 1500, 1800, 2500] },
+      full:  { name: 'Full',  prices: [1600, 1800, 2000, 2500, 3500] }
+    };
+    const BANDS = [
+      { label: 'Below $70,000',     upper: 70000 },
+      { label: '$70,000–$79,999',   upper: 80000 },
+      { label: '$80,000–$89,999',   upper: 90000 },
+      { label: '$90,000–$99,999',   upper: 100000 },
+      { label: '$100,000+',         upper: Infinity }
+    ];
+    const DEFAULT_IDX = BANDS.length - 1; // $100k+ row = default/standard rate
+    const TERM_DISC = { 1: 0, 2: 5, 3: 15 };  // % off by prepaid months (max term = 3)
+    const PER_EXTRA_EXCHANGE = 5;             // % off per additional exchange beyond the first
+    const MAX_DISCOUNT = 40;                  // overall combined-discount cap, %
+
+    const $ = (id) => document.getElementById(id);
+    const money = (n) => '$' + Number(Math.round(n)).toLocaleString('en-US');
+
+    function bandIndex(btc) {
+      for (let i = 0; i < BANDS.length; i++) { if (btc < BANDS[i].upper) return i; }
+      return BANDS.length - 1;
+    }
+
+    // ---- State ----
+    let mode = 'live';            // 'live' | 'manual'
+    let lastLive = null;          // last fetched live price
+    let refreshTimer = null;
+
+    // ---- Build bands table ----
+    (function buildBands() {
+      const body = $('bandBody');
+      BANDS.forEach((b, i) => {
+        const tr = document.createElement('tr');
+        tr.id = 'band-' + i;
+        if (i === DEFAULT_IDX) tr.className = 'default-row';
+        tr.innerHTML = `<td class="band">${b.label}</td>
+          <td>${money(TIERS.basic.prices[i])}</td>
+          <td>${money(TIERS.core.prices[i])}</td>
+          <td>${money(TIERS.full.prices[i])}</td>`;
+        body.appendChild(tr);
+      });
+    })();
+
+    // ---- Core recalc / render ----
+    function recalc() {
+      const btc = Math.max(0, Number($('btc').value || 0));
+      const plan = $('plan').value;
+      const exchanges = Math.max(1, Math.floor(Number($('exchanges').value || 1)));
+      const months = Math.max(1, Math.floor(Number($('months').value || 1)));
+      const idx = bandIndex(btc);
+      const tier = TIERS[plan];
+
+      const summer = tier.prices[idx];        // BTC-indexed per-exchange rate
+      const def = tier.prices[DEFAULT_IDX];    // default/standard per-exchange rate
+
+      const termPct = TERM_DISC[months] || 0;
+      const exchPct = Math.max(0, exchanges - 1) * PER_EXTRA_EXCHANGE;
+      const rawPct = termPct + exchPct;
+      const totalPct = Math.min(MAX_DISCOUNT, rawPct);
+      const capped = rawPct > MAX_DISCOUNT;
+
+      const rate = summer * (1 - totalPct / 100); // effective per-exchange monthly rate
+      const monthly = rate * exchanges;
+      const contract = monthly * months;
+      const totalSaved = Math.max(0, def - rate) * exchanges * months;
+
+      // urgency text
+      let urg;
+      if (idx < DEFAULT_IDX) {
+        urg = `This rate holds while BTC stays under <b>${money(BANDS[idx].upper)}</b>. Above it, the rate steps toward default.`;
+      } else {
+        urg = `BTC is in the <b>default band</b>. Lock a multi-month term to fix today's standard rate.`;
+      }
+
+      // calculator result
+      $('result').innerHTML = `
+        <div class="rrow"><span class="k">Live BTC band</span><span class="v">${BANDS[idx].label}</span></div>
+        <div class="rrow"><span class="k">Service level</span><span class="v">${tier.name}</span></div>
+        <div class="rrow hot"><span class="k">Summer rate / exchange</span><span class="v"><s>${money(def)}</s>${money(summer)}</span></div>
+        ${termPct > 0 ? `<div class="rrow save"><span class="k">Term discount (${months} mo)</span><span class="v">−${termPct}%</span></div>` : ''}
+        ${exchPct > 0 ? `<div class="rrow save"><span class="k">Multi-exchange (${exchanges} exch.)</span><span class="v">−${exchPct}%</span></div>` : ''}
+        ${totalPct > 0 ? `<div class="rrow save"><span class="k">Combined discount${capped ? ' · capped' : ''}</span><span class="v">−${totalPct}%</span></div>` : ''}
+        <div class="rrow hot"><span class="k">Your rate / exchange · mo</span><span class="v">${money(rate)}</span></div>
+        <div class="rrow"><span class="k">Exchanges × term</span><span class="v">${exchanges} × ${months} mo</span></div>
+        <div class="rrow"><span class="k">Monthly total</span><span class="v">${money(monthly)}</span></div>
+        <div class="rrow total"><span class="k">Contract total</span><span class="v">${money(contract)}</span></div>
+        ${totalSaved > 0 ? `<div class="rrow save"><span class="k">Total saved vs default</span><span class="v">${money(totalSaved)}</span></div>` : ''}
+      `;
+
+      // spotlight (Full flagship, tracks live band)
+      const fullNow = TIERS.full.prices[idx];
+      const fullDef = TIERS.full.prices[DEFAULT_IDX];
+      const fullSavePct = fullDef > 0 ? Math.round((1 - fullNow / fullDef) * 100) : 0;
+      $('spotNow').textContent = money(fullNow);
+      $('spotSave').textContent = fullSavePct > 0
+        ? `Save ${fullSavePct}% vs default this summer`
+        : `Standard rate — lock your term`;
+      $('spotUrg').innerHTML = urg;
+
+      // plan cards live "now" prices
+      document.querySelectorAll('.tier').forEach((card) => {
+        const p = card.getAttribute('data-plan');
+        const nowEl = card.querySelector('.bNow');
+        if (nowEl) nowEl.textContent = money(TIERS[p].prices[idx]);
+      });
+
+      // highlight current band row
+      document.querySelectorAll('#bandBody tr').forEach((tr, i) => {
+        tr.classList.toggle('is-current', i === idx);
+      });
+
+      return { btc, plan: tier.name, exchanges, months, band: BANDS[idx].label, summer, def, termPct, exchPct, totalPct, capped, rate, monthly, contract, totalSaved };
+    }
+
+    // ---- Live BTC price ----
+    function setSource(text, cls) {
+      $('btcSource').textContent = text;
+      const t = $('ticker');
+      t.classList.remove('is-manual', 'is-down');
+      if (cls) t.classList.add(cls);
+    }
+    function setTicker(price) { $('tickerPrice').textContent = price ? money(price) : '—'; }
+
+    async function fetchBTC() {
+      // Try CoinGecko, then Binance. Both are CORS-enabled for browsers.
+      try {
+        const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd', { cache: 'no-store' });
+        if (r.ok) { const j = await r.json(); const p = j?.bitcoin?.usd; if (p > 0) return { price: p, src: 'CoinGecko' }; }
+      } catch (e) {}
+      try {
+        const r = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT', { cache: 'no-store' });
+        if (r.ok) { const j = await r.json(); const p = Number(j?.price); if (p > 0) return { price: p, src: 'Binance' }; }
+      } catch (e) {}
+      return null;
+    }
+
+    function timeNow() { const d = new Date(); return d.toLocaleTimeString('en-GB'); }
+
+    async function refreshLive() {
+      if (mode !== 'live') return;
+      const res = await fetchBTC();
+      if (res) {
+        lastLive = res.price;
+        $('btc').value = Math.round(res.price);
+        setSource(`● Live · ${res.src} · ${timeNow()}`, null);
+        setTicker(res.price);
+        recalc();
+      } else {
+        // fallback: keep whatever is there, switch to manual gracefully
+        if (!$('btc').value) { $('btc').value = 65000; }
+        setSource('⚠ Live unavailable — using manual value', 'is-down');
+        setTicker(Number($('btc').value));
+        recalc();
+      }
+    }
+
+    function startLive() {
+      mode = 'live';
+      $('modeLive').classList.add('active');
+      $('modeManual').classList.remove('active');
+      $('btc').readOnly = true;
+      refreshLive();
+      clearInterval(refreshTimer);
+      refreshTimer = setInterval(refreshLive, 60000);
+    }
+    function startManual() {
+      mode = 'manual';
+      clearInterval(refreshTimer);
+      $('modeManual').classList.add('active');
+      $('modeLive').classList.remove('active');
+      $('btc').readOnly = false;
+      setSource('Manual scenario', 'is-manual');
+      $('btc').focus();
+      $('btc').select();
+      recalc();
+    }
+
+    // ---- Wire up ----
+    $('modeLive').addEventListener('click', startLive);
+    $('modeManual').addEventListener('click', startManual);
+    ['plan', 'exchanges', 'months'].forEach((id) => $(id).addEventListener('input', recalc));
+    $('btc').addEventListener('input', () => { if (mode === 'manual') { setTicker(Number($('btc').value)); recalc(); } });
+
+    // plan card "Select" buttons sync the dropdown
+    document.querySelectorAll('.tier .btn').forEach((b) => {
+      b.addEventListener('click', () => {
+        const p = b.closest('.tier').getAttribute('data-plan');
+        $('plan').value = p; recalc();
+      });
+    });
+
+    // copy summary
+    $('copy').addEventListener('click', async () => {
+      const r = recalc();
+      const text =
+`BTC-INDEXED MM OPS — SUMMER OFFER
+Service level: ${r.plan}
+Live BTC band: ${r.band}  (BTC ${money(r.btc)})
+Default rate / exchange: ${money(r.def)}
+Summer rate / exchange: ${money(r.summer)}
+Term discount (${r.months} mo): -${r.termPct}%
+Multi-exchange discount (${r.exchanges} exch.): -${r.exchPct}%
+Combined discount${r.capped ? ' (capped)' : ''}: -${r.totalPct}%
+Your rate / exchange: ${money(r.rate)}
+Exchanges: ${r.exchanges}
+Term: ${r.months} month(s)
+Monthly total: ${money(r.monthly)}
+Contract total: ${money(r.contract)}${r.totalSaved > 0 ? `\nTotal saved vs default: ${money(r.totalSaved)}` : ''}
+
+Scope: service fee only. Client provides exchange-side inventory/capital and keeps custody. No price, volume or market-outcome promises. Rate fixed for the prepaid term.`;
+      try {
+        await navigator.clipboard.writeText(text);
+        const btn = $('copy'); const old = btn.textContent;
+        btn.textContent = 'Copied ✓';
+        setTimeout(() => { btn.textContent = old; }, 1400);
+      } catch (e) { alert(text); }
+    });
+
+    // ---- Init ----
+    $('btc').value = 65000;     // placeholder until live resolves
+    setTicker(65000);
+    recalc();
+    startLive();
+  </script>
+</body>
+</html>
